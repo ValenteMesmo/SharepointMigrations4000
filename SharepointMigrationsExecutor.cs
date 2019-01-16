@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace SharepointMigrations
@@ -23,15 +24,21 @@ namespace SharepointMigrations
 
             var executed = sharepoint.GetAllListItens("Migrations");
 
+            var migrations = new List<SharepointMigration>();
             foreach (var migrationType in types)
             {
                 SharepointMigration migrationInstance = (SharepointMigration)Activator.CreateInstance(migrationType);
-                if (executed.Contains(migrationInstance.Id))
+            }
+
+            foreach (var migration in migrations.OrderBy(f => f.Id))
+            {
+                if (executed.Contains(migration.Id))
                     continue;
 
-                migrationInstance.Execute(sharepoint);
-                sharepoint.AddItem("Migrations", migrationInstance.Id);
+                migration.Execute(sharepoint);
+                sharepoint.AddItem("Migrations", migration.Id);
             }
+
         }
     }
 }

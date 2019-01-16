@@ -193,6 +193,64 @@ namespace SharepointMigrations
             });
         }
 
+        public void AddColumnBoolean(string listName, string columnName)
+        {
+            CreateContext(clientContext =>
+            {
+                var list = clientContext.Web.Lists.GetByTitle(listName);
+                clientContext.Load(list);
+                clientContext.ExecuteQuery();
+
+                CheckIfColumnNameIsAvailable(listName, columnName, clientContext, list);
+
+                try
+                {
+                    var field = list.Fields.AddFieldAsXml(
+                            $"<Field Type='Boolean' DisplayName='{columnName.RemoveAccents().RemoveWhiteSpaces()}'/>"
+                            , true
+                            , AddFieldOptions.AddFieldToDefaultView
+                        );
+                    field.Title = columnName;
+                    field.Update();
+                    list.Update();
+                    clientContext.ExecuteQuery();
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception($"Nao foi possivel criar a coluna '{columnName}' na lista '{listName}'", ex);
+                }
+            });
+        }
+
+        public void AddColumnDateTime(string listName, string columnName)
+        {
+            CreateContext(clientContext =>
+            {
+                var list = clientContext.Web.Lists.GetByTitle(listName);
+                clientContext.Load(list);
+                clientContext.ExecuteQuery();
+
+                CheckIfColumnNameIsAvailable(listName, columnName, clientContext, list);
+
+                try
+                {
+                    var field = list.Fields.AddFieldAsXml(
+                            $"<Field Type='DateTime' DisplayName='{columnName.RemoveAccents().RemoveWhiteSpaces()}'/>"
+                            , true
+                            , AddFieldOptions.AddFieldToDefaultView
+                        );
+                    field.Title = columnName;
+                    field.Update();
+                    list.Update();
+                    clientContext.ExecuteQuery();
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception($"Nao foi possivel criar a coluna '{columnName}' na lista '{listName}'", ex);
+                }
+            });
+        }
+
         public void AddColumnNumber(string listName, string columnName)
         {
             CreateContext(clientContext =>

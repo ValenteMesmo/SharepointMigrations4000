@@ -27,7 +27,8 @@ namespace SharepointMigrations
             var migrations = new List<SharepointMigration>();
             foreach (var migrationType in types)
             {
-                SharepointMigration migrationInstance = (SharepointMigration)Activator.CreateInstance(migrationType);
+                var migrationInstance = (SharepointMigration)Activator.CreateInstance(migrationType);
+                migrations.Add(migrationInstance);
             }
 
             foreach (var migration in migrations.OrderBy(f => f.Id))

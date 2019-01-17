@@ -231,7 +231,7 @@ namespace SharepointMigrations
                 clientContext.ExecuteQuery();
 
                 CheckIfColumnNameIsAvailable(listName, columnName, clientContext, list);
-
+                
                 try
                 {
                     var field = list.Fields.AddFieldAsXml(

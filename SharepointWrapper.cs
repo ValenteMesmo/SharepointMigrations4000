@@ -161,6 +161,41 @@ namespace SharepointMigrations
             });
         }
 
+        public void AddColumnUserMulti(string listName, string columnName)
+        {
+            CreateContext(clientContext =>
+            {
+                //"<Field Type='Geolocation' DisplayName='Location'/>"
+                var list = clientContext.Web.Lists.GetByTitle(listName);
+                clientContext.Load(list);
+                clientContext.ExecuteQuery();
+
+                CheckIfColumnNameIsAvailable(listName, columnName, clientContext, list);
+
+                try
+                {
+                    var field = list.Fields.AddFieldAsXml(
+                            $"<Field Type='UserMulti' DisplayName='{columnName.RemoveAccents().RemoveWhiteSpaces()}'/>"
+                            , true
+                            , AddFieldOptions.AddFieldToDefaultView
+                        );
+                    var userField = clientContext.CastTo<FieldUser>(field);
+                    //textField.MaxLength =
+                    userField.Title = columnName;
+                    userField.Update();
+                    userField.SelectionMode = FieldUserSelectionMode.PeopleOnly;
+                    userField.AllowMultipleValues = true;
+                    list.Update();
+                    clientContext.ExecuteQuery();
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception($"Nao foi possivel criar a coluna '{columnName}' na lista '{listName}'", ex);
+                }
+            });
+        }
+
+
         public void AddColumnSingleLineOfText(string listName, string columnName)
         {
             CreateContext(clientContext =>
@@ -231,7 +266,7 @@ namespace SharepointMigrations
                 clientContext.ExecuteQuery();
 
                 CheckIfColumnNameIsAvailable(listName, columnName, clientContext, list);
-                
+
                 try
                 {
                     var field = list.Fields.AddFieldAsXml(

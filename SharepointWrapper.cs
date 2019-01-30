@@ -228,6 +228,38 @@ namespace SharepointMigrations
             });
         }
 
+        public void AddColumnRichText(string listName, string columnName)
+        {
+            CreateContext(clientContext =>
+            {
+                //"<Field Type='Geolocation' DisplayName='Location'/>"
+                var list = clientContext.Web.Lists.GetByTitle(listName);
+                clientContext.Load(list);
+                clientContext.ExecuteQuery();
+
+                CheckIfColumnNameIsAvailable(listName, columnName, clientContext, list);
+
+                try
+                {
+                    var field = list.Fields.AddFieldAsXml(
+                            $"<Field Type='Note' DisplayName='{columnName.RemoveAccents().RemoveWhiteSpaces()}'/>"
+                            , true
+                            , AddFieldOptions.AddFieldToDefaultView
+                        );
+                    var textField = clientContext.CastTo<FieldMultiLineText>(field);
+                    textField.Title = columnName;
+                    textField.RichText = true;
+                    textField.Update();
+                    list.Update();
+                    clientContext.ExecuteQuery();
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception($"Nao foi possivel criar a coluna '{columnName}' na lista '{listName}'", ex);
+                }
+            });
+        }
+
         public void AddColumnBoolean(string listName, string columnName)
         {
             CreateContext(clientContext =>

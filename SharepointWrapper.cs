@@ -94,7 +94,7 @@ namespace SharepointMigrations
             return result;
         }
 
-        public void AddItem(string listName, string title)
+        public void AddItem(string listName, params KeyValuePair<string,object>[] values)
         {
             CreateContext(clientContext =>
             {
@@ -104,7 +104,11 @@ namespace SharepointMigrations
                     clientContext.Web.Lists.RefreshLoad();
                     var existentList = clientContext.Web.Lists.GetByTitle(listName);
                     ListItem newItem = existentList.AddItem(new ListItemCreationInformation());
-                    newItem["Title"] = title;
+                    foreach (var pair in values)
+                    {
+                        newItem[pair.Key] = pair.Value;
+                    }
+                    
                     newItem.Update();
                     clientContext.ExecuteQuery();
                 }
@@ -112,7 +116,6 @@ namespace SharepointMigrations
                 {
                 }
             });
-
         }
 
         public void CreateList(string name, bool documentLibrary = false)

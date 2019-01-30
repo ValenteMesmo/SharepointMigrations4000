@@ -37,7 +37,10 @@ namespace SharepointMigrations
                     continue;
 
                 migration.Execute(sharepoint);
-                sharepoint.AddItem("Migrations", migration.Id);
+                sharepoint.AddItem(
+                    "Migrations"
+                    , new KeyValuePair<string, object>("Title", migration.Id)
+                );
             }
 
         }

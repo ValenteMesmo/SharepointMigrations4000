@@ -1,8 +1,10 @@
-﻿namespace SharepointMigrations
+﻿using Microsoft.SharePoint.Client;
+
+namespace SharepointMigrations
 {
     public interface SharepointMigration
     {
         string Id { get; }
-        void Execute(SharepointWrapper sharepoint);
+        void Execute(ClientContext sharepoint);
     }
 }

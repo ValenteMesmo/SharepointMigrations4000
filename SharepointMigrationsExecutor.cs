@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.SharePoint.Client;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -6,23 +7,47 @@ namespace SharepointMigrations
 {
     public class SharepointMigrationsExecutor
     {
-        private readonly SharepointWrapper sharepoint;
+        private readonly ClientContext sharepoint;
 
-        public SharepointMigrationsExecutor(string sharepointUrl, string user, string password)
+        public SharepointMigrationsExecutor(
+            string sharepointUrl
+            , string user
+            , string password
+        ) : this(new ClientContext(sharepointUrl)
         {
-            sharepoint = new SharepointWrapper(sharepointUrl, user, password);
+            Credentials = new SharePointOnlineCredentials(
+                user
+                , password.ToSecureString()
+            )
+        })
+        { }
+
+        public SharepointMigrationsExecutor(ClientContext ClientContext)
+        {
+            sharepoint = ClientContext;
         }
 
         public void Execute()
         {
-            sharepoint.CreateList("Migrations", false, true);
+            sharepoint.CreateList(
+                internalName: "Migrations"
+                , displayName: "Migrations"
+                , documentLibrary: false
+                , hidden: true);
 
             var type = typeof(SharepointMigration);
             var types = AppDomain.CurrentDomain.GetAssemblies()
                 .SelectMany(s => s.GetTypes())
                 .Where(p => type.IsAssignableFrom(p) && type != p);
 
-            var executed = sharepoint.GetAllListItens("Migrations");
+            sharepoint.Web.Lists.RefreshLoad();
+            var existentList = sharepoint.Web.Lists.GetByTitle("Migrations");
+            var items = existentList.GetItems(new CamlQuery());
+            sharepoint.Load(items);
+            sharepoint.ExecuteQuery();
+            var executed = items
+                .OfType<ListItem>()
+                .Select(f => f["Title"].ToString());
 
             var migrations = new List<SharepointMigration>();
             foreach (var migrationType in types)
@@ -39,7 +64,7 @@ namespace SharepointMigrations
                 migration.Execute(sharepoint);
                 sharepoint.AddItem(
                     "Migrations"
-                    , new KeyValuePair<string, object>("Title", migration.Id)
+                    , new { Title = migration.Id }
                 );
             }
 

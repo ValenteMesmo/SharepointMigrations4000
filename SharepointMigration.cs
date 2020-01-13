@@ -1,10 +1,11 @@
 ﻿using Microsoft.SharePoint.Client;
+using System.Threading.Tasks;
 
 namespace SharepointMigrations
 {
     public interface SharepointMigration
     {
         string Id { get; }
-        void Execute(ClientContext sharepoint);
+        Task ExecuteAsync(ClientContext sharepoint);
     }
 }

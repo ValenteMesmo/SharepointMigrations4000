@@ -2,9 +2,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace SharepointMigrations
 {
+
     public class SharepointMigrationsExecutor
     {
         private readonly ClientContext sharepoint;
@@ -27,24 +29,25 @@ namespace SharepointMigrations
             sharepoint = ClientContext;
         }
 
-        public void Execute()
+        public async Task ExecuteAsync()
         {
-            sharepoint.CreateList(
-                internalName: "Migrations"
-                , displayName: "Migrations"
-                , documentLibrary: false
-                , hidden: true);
+            const string migrationsListName = "Migrations";
+
+            if (await sharepoint.ListExists(migrationsListName) == false)
+                await sharepoint.CreateHiddenList(
+                    internalName: migrationsListName
+                    , displayName: migrationsListName);
 
             var type = typeof(SharepointMigration);
             var types = AppDomain.CurrentDomain.GetAssemblies()
                 .SelectMany(s => s.GetTypes())
                 .Where(p => type.IsAssignableFrom(p) && type != p);
 
-            sharepoint.Web.Lists.RefreshLoad();
-            var existentList = sharepoint.Web.Lists.GetByTitle("Migrations");
+            var existentList = await sharepoint.GetList(migrationsListName);
             var items = existentList.GetItems(new CamlQuery());
             sharepoint.Load(items);
-            sharepoint.ExecuteQuery();
+            await sharepoint.ExecuteQueryAsync();
+
             var executed = items
                 .OfType<ListItem>()
                 .Select(f => f["Title"].ToString());
@@ -61,11 +64,9 @@ namespace SharepointMigrations
                 if (executed.Contains(migration.Id))
                     continue;
 
-                migration.Execute(sharepoint);
-                sharepoint.AddItem(
-                    "Migrations"
-                    , new { Title = migration.Id }
-                );
+                await migration.ExecuteAsync(sharepoint);
+
+                await existentList.AddItem(new { Title = migration.Id });
             }
 
         }

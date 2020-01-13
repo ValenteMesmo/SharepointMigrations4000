@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 
 namespace SharepointMigrations
 {
-
     public class SharepointMigrationsExecutor
     {
         private readonly ClientContext sharepoint;

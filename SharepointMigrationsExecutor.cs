@@ -58,14 +58,14 @@ namespace SharepointMigrations
                 migrations.Add(migrationInstance);
             }
 
-            foreach (var migration in migrations.OrderBy(f => f.Id))
+            foreach (var migration in migrations.OrderBy(f => f.GetType().Name))
             {
-                if (executed.Contains(migration.Id))
+                if (executed.Contains(migration.GetType().Name))
                     continue;
 
                 await migration.ExecuteAsync(sharepoint);
 
-                await existentList.AddItem(new { Title = migration.Id });
+                await existentList.AddItem(new { Title = migration.GetType().Name });
             }
 
         }

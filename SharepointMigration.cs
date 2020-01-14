@@ -5,7 +5,6 @@ namespace SharepointMigrations
 {
     public interface SharepointMigration
     {
-        string Id { get; }
         Task ExecuteAsync(ClientContext sharepoint);
     }
 }
